@@ -1,37 +1,24 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-// Note: I don't need to do this especially with the way the tiles are but I can make it so when a tile is recorded, then it removes the walls that were recorded so that the next tile does not double up the walls.
-
-// Next steps
-//      Bring this into main scene
-//      Make main scene
-//      Give GameManager control of three mazes, each with a unique number and sizes.
-//      Randomly choose a starting point as well. X
-//      Press to open doors for maze access. Then they teleport you over.
-// Future steps
-//      Timer, slowly lose health
-//      Randomly spawn in pits
-//      Oh shit there was the idea to make certain areas inaccessible.
-//          Not doing that because of random nature of maze.
-
-
+/**
+ *  Builds a new, randomly generated maze in a Unity3D scene.
+ *  Requires that the script MazeGenerator be included in this project.
+ */
 
 public class MazeBuilder : MonoBehaviour
 {
-    // This class is for actually building the maze.
-    public int MazeNumber;
-    public int MazeSize;
-    public float TileSize;
-    public float Scale;
-
-    private Vector3 ParentPosition;
+    // Arbitrary number used to keep track of which maze this is in the scene.
+    [SerializeField] private int MazeNumber;
+    // nxn maze where MazeSize is n.
+    [SerializeField] private int MazeSize;
+    [SerializeField] private float TileSize;
+    // Allows you to adjust the scale of the maze. 
+    [SerializeField] private float Scale;
+    [SerializeField] private bool BuildOnStart = false;
 
     private string MazeName;
     private MazeGenerator MazeGenerator;
@@ -44,20 +31,20 @@ public class MazeBuilder : MonoBehaviour
     private float[] TileRotations;
 
     // All prefabs to spawn in to maze.
-    public GameObject Full;
-    public GameObject Corner;
-    public GameObject Split;
-    public GameObject Forward;
-    public GameObject Empty;
-    public GameObject CulDeSac;
-    public GameObject End;
+    [SerializeField] private GameObject Full;
+    [SerializeField] private GameObject Corner;
+    [SerializeField] private GameObject Split;
+    [SerializeField] private GameObject Forward;
+    [SerializeField] private GameObject Empty;
+    [SerializeField] private GameObject CulDeSac;
+    [SerializeField] private GameObject End;
+
+    private bool CanBuildMaze = true;
 
     void Awake()
     {
         MazeGenerator = new MazeGenerator(MazeSize);
         MazeName = "Maze #" + MazeNumber;
-
-        ParentPosition = GetComponentInParent<Transform>().position;
 
         // Assign the tiles objects to the array.
         // Also assign the rotations.
@@ -66,7 +53,7 @@ public class MazeBuilder : MonoBehaviour
 
         // DO NOT EDIT THESE NUMBERS.
         // There are sixteen possible tiles and orientations for them.
-        // Translate walla to binary looks at the cells of the maze and translate them to 4bit binary number that then get coverted to decimal. That's a bit complex for this lol.
+        // Translate walls to binary looks at the cells of the maze and translate them to 4bit binary number that then get coverted to decimal. That's a bit complex for this lol.
         TileGameObjects[0] = Empty;
         TileRotations[0] = 0;
         TileGameObjects[1] = Split;
@@ -100,15 +87,16 @@ public class MazeBuilder : MonoBehaviour
         TileGameObjects[15] = Full;
         TileRotations[15] = 0;
 
-        // BuildMaze();
+        
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-
+        if (BuildOnStart)
+        {
+            BuildMaze();
+        }
     }
-
 
     /**
      * Guess what this function does.
@@ -120,17 +108,6 @@ public class MazeBuilder : MonoBehaviour
         // These are the wall specifications for the generated maze.
         //      See MazeGenerator for how these specs represent the maze.
         int[][][] MazeWallSpecs = MazeGenerator.GetMaze();
-
-        // Next step is to translate these specs to something representing a maze tile.
-        //      There are six different tiles which may have different orientations.
-        //      Corner, split, forward, end, full, and empty.
-        // 
-        // Corner has four orientations.
-        // Split has four.
-        // Forward has two.
-        // End has four.
-        // Full has one.
-        // Empty has one.
 
         // This is the maze. Each coordinate in the maze has a 4 bit binary as a string representing one of 16 tile types of the maze.
         MazeDictionary MazeAsCoords = TranslateWallsToBinary(MazeWallSpecs);
@@ -157,7 +134,7 @@ public class MazeBuilder : MonoBehaviour
                 //   -        2
                 // This would return: 1111
                 // If we removed the right wall it would return: 1011
-                // If we remove the top and bottom walls it would return: 0101
+                // If we removed the top and bottom walls instead it would return: 0101
 
                 string BinaryToAdd = "";
 
@@ -182,7 +159,7 @@ public class MazeBuilder : MonoBehaviour
         ArrayList CulDuSacs = new ArrayList();
         ArrayList PossibleStartingPoints = new ArrayList();
 
-        // For each cell in the maze
+        // For each cell in the maze, place it.
         for (int row_index = 0; row_index < MazeSize; row_index++)
         {
             for (int col_index = 0; col_index < MazeSize; col_index++)
@@ -197,13 +174,15 @@ public class MazeBuilder : MonoBehaviour
                 GameObject tile = Instantiate
                 (
                     CurrentTile, 
-                    ((new Vector3(  (row_index ) * TileSize,   0, (col_index) * TileSize)) + ParentPosition) * Scale, // (Coordinate * TileSize) + local position all times Scale
+                    ((new Vector3(  (row_index ) * TileSize,   0, (col_index) * TileSize)) + transform.position) * Scale, // (Coordinate * TileSize) + local position all times Scale
                     Quaternion.identity
                 );
                 tile.transform.localScale = new Vector3(Scale,Scale,Scale);
 
                 tile.name = "Maze Tile @ " + row_index+":"+col_index;
-                tile.transform.parent = GameObject.Find("Maze " + MazeNumber).transform;
+
+                tile.transform.parent = gameObject.transform; //GameObject.Find("Maze " + MazeNumber).transform;
+                
                 tile.transform.Rotate(0, TileRotations[binAsDecimal], 0);
                 
                 // If this tile is a Cul De Sac, then add it to the array so it may be a candidate for the end of the maze.
@@ -243,7 +222,7 @@ public class MazeBuilder : MonoBehaviour
         );
         EndTile.transform.localScale = new Vector3(Scale,Scale,Scale);
         EndTile.transform.Rotate(0, TileRotations[GOandAngle.Item2],0);
-        EndTile.transform.parent = GameObject.Find("Maze " + MazeNumber).transform;
+        EndTile.transform.parent = gameObject.transform;// GameObject.Find("Maze " + MazeNumber).transform;
         EndingPoint = EndTile.transform.position;
 
         // Choose a starting point at random.
@@ -308,10 +287,11 @@ public class MazeBuilder : MonoBehaviour
     public void ResetMaze()
     {
         // Delete every tile. Tiles are stored in this parent.
-        GameObject parent = GameObject.Find("Maze " + MazeNumber);
-        while (parent.transform.childCount > 0)
+
+        // GameObject parent = GameObject.Find("Maze " + MazeNumber);
+        while (transform.childCount > 0)
         {
-            DestroyImmediate(parent.transform.GetChild(0).gameObject);
+            DestroyImmediate(transform.GetChild(0).gameObject);
         }
         // Build the new maze.
         BuildMaze();

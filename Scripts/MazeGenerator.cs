@@ -3,6 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/**
+ *  This class builds and stores a maze as an int[][][] object.
+ *  This class only uses an iterative depth first search.
+ *  Ideally, I'd implement more search methods.
+ * 
+ */
 public class MazeGenerator
 {
     // Visited parts of the maze search. 0 is not visited and 1 is visited.
@@ -48,7 +54,7 @@ public class MazeGenerator
      * Explanation of the output:
      * 
      * 
-                Each vertical row of walls is one array.
+            Each vertical row of walls is one array.
             Each column of walls is an array.
             
             Say this is a grid which will soon be turned into a maze.
@@ -67,7 +73,8 @@ public class MazeGenerator
              -
              -
              -
-            This, along with the three other vertical wall columns, each have an array representing them.
+            This, along with the three other vertical wall columns, each have an array representing them. Making 4 arrays.
+
             Same with rows.
             | | | | |
             This row of walls is represented by an array inside of int[][] horizontal_walls.
@@ -105,7 +112,7 @@ public class MazeGenerator
 
     /**
      * GenerateMaze() generates a new maze in this MazeGenerator object using the iterative depth first search algorithm.
-     * Use GetMaze() to print out the wall specs for the maze currently generated.
+     * Use GetMaze() to return the wall specs for the maze currently generated as an int[][][].
      * 
      */
     public void GenerateMaze()
