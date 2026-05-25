@@ -1,6 +1,6 @@
 ## How to Use
 
-1. Download and Import Package into a Unity 3D Project.
+1. Download and Import scene (see the Releases) into a Unity 3D Project.
 2. Create or Download Square Maze Tiles, one for each type of tile. An example is given.
 3. Create a GameObject in your scene called Maze #, where # is a unique identifying number (no problems will occur if this is not done correctly).
 4. Attach the MazeBuilder component to this GameObject.
