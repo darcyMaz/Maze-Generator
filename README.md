@@ -1,9 +1,8 @@
-To be added to readme:
-- explain how it works
-- explain how to use the examples
+## How to Use
 
-To do for this repo:
-- Yes I know I can use GitHub projects but it's so tucked away I'm not using that
-- Combine code and examples into one package
-- Add more algorithms and functionality to easily and efficiently switch between them
-- Make demo build using maze assignment
+1. Download and Import Package into a Unity 3D Project.
+2. Create or Download Square Maze Tiles, one for each type of tile. An example is given.
+3. Create a GameObject in your scene called Maze #, where # is a unique identifying number (no problems will occur if this is not done correctly).
+4. Attach the MazeBuilder component to this GameObject.
+5. Fill in the inspector variables, such as the tile size, the maze size, and the gameObjects to be spawned in.
+6. Choose whether to spawn in the maze on start or call its public function from somewhere else.
